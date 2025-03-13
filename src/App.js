@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import $ from "jquery";
 import "jquery-ui-dist/jquery-ui";
-import "./styles.css";
+import "./styles.css"; // Ensure this file contains the necessary styles
 
 const TicTacToe = () => {
   const [boardSize, setBoardSize] = useState(5); // Default board size
@@ -13,17 +13,11 @@ const TicTacToe = () => {
   const [gameStarted, setGameStarted] = useState(false);
   const [winner, setWinner] = useState(null);
   const gridSize = 3; // Fixed grid size for winning condition
-  const boardRef = useRef(null);
+  const boardRef = useRef(null); // Initialize boardRef using useRef
 
   useEffect(() => {
     initBoard();
   }, [boardSize]);
-
-  useEffect(() => {
-    if (isDraggingEnabled) {
-      attachDraggable();
-    }
-  }, [isDraggingEnabled, boardSize]); // Reinitialize draggable when grid size changes
 
   const initBoard = () => {
     const newBoard = Array(boardSize)
@@ -38,6 +32,11 @@ const TicTacToe = () => {
   };
 
   const renderCell = (row, col) => {
+    const boardWidth = boardRef.current.offsetWidth;
+    const cellSize = boardWidth / boardSize;
+    const fontSize = Math.min(30, cellSize * 0.6); // Dynamic font size
+    const lineHeight = `${cellSize}px`; // Line height matches cell height for vertical centering
+
     return (
       <div
         key={`${row}-${col}`}
@@ -45,6 +44,10 @@ const TicTacToe = () => {
         data-row={row}
         data-col={col}
         onClick={() => handleCellClick(row, col)}
+        style={{
+          fontSize: `${fontSize}px`,
+          lineHeight: lineHeight,
+        }}
       >
         {board[row][col]}
       </div>
@@ -101,36 +104,12 @@ const TicTacToe = () => {
     return false;
   };
 
-  const attachDraggable = () => {
-    const cellWidth = $(boardRef.current).width() / boardSize;
-    const cellHeight = $(boardRef.current).height() / boardSize;
-
-    $(".grid-overlay").draggable({
-      containment: "#game-board",
-      grid: [cellWidth, cellHeight], // Dynamic grid snap
-      start: function () {
-        $(".grid-overlay").css("pointer-events", "auto");
-      },
-      stop: function () {
-        const cellPercent = 100 / boardSize;
-        const newCol = Math.round(parseInt($(this).css("left")) / cellWidth);
-        const newRow = Math.round(parseInt($(this).css("top")) / cellHeight);
-
-        setGridPosition({ row: newRow, col: newCol });
-
-        $(this).css({
-          left: newCol * cellPercent + "%",
-          top: newRow * cellPercent + "%",
-        });
-      },
-    });
-  };
-
   const handleToggleMode = () => {
     if (!gameActive) return;
 
     if (!isDraggingEnabled) {
       setIsDraggingEnabled(true);
+      attachDraggable(); // Initialize draggable when enabling drag mode
     } else {
       setIsDraggingEnabled(false);
       setCurrentPlayer(currentPlayer === "X" ? "O" : "X");
@@ -148,6 +127,31 @@ const TicTacToe = () => {
     } else {
       setBoardSize(parseInt(e.target.value));
     }
+  };
+
+  const attachDraggable = () => {
+    const $overlay = $(".grid-overlay");
+
+    $overlay.draggable({
+      containment: "#game-board",
+      grid: [$(".cell").width(), $(".cell").height()], // Dynamic grid snap
+      start: function() {
+        $overlay.css("pointer-events", "auto");
+      },
+      stop: function() {
+        const cellPercent = 100 / boardSize;
+        const newCol = Math.round(parseInt($(this).css("left")) / $(".cell").width());
+        const newRow = Math.round(parseInt($(this).css("top")) / $(".cell").height());
+
+        $(this).css({
+          left: newCol * cellPercent + "%",
+          top: newRow * cellPercent + "%",
+        });
+
+        setGridPosition({ row: newRow, col: newCol });
+        $("#board-size").attr("disabled", true);
+      },
+    });
   };
 
   return (
@@ -169,13 +173,24 @@ const TicTacToe = () => {
       </div>
       <p id="current-player">{gameActive ? `Current Player: ${currentPlayer}` : ""}</p>
       <p id="winner">{winner ? `Winner: Player ${winner}` : ""}</p>
-      <div className="board" id="game-board" ref={boardRef}>
+      <div
+        className="board"
+        id="game-board"
+        ref={boardRef} // Attach the ref to the game board
+        style={{
+          gridTemplateColumns: `repeat(${boardSize}, 1fr)`,
+          gridTemplateRows: `repeat(${boardSize}, 1fr)`,
+        }}
+      >
         {board.map((row, rowIndex) =>
           row.map((_, colIndex) => renderCell(rowIndex, colIndex))
         )}
         <div
           className="grid-overlay"
           style={{
+            gridTemplateColumns: `repeat(${boardSize}, 1fr)`,
+            gridTemplateRows: `repeat(${boardSize}, 1fr)`,
+            "--board-size": boardSize,
             left: `${(gridPosition.col * 100) / boardSize}%`,
             top: `${(gridPosition.row * 100) / boardSize}%`,
             pointerEvents: isDraggingEnabled ? "auto" : "none",
