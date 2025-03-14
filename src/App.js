@@ -163,6 +163,7 @@ const TicTacToe = () => {
           <option value="5">5x5</option>
           <option value="7">7x7</option>
           <option value="9">9x9</option>
+          <option value="12">12x12</option>
         </select>
         <button id="toggle-mode" onClick={handleToggleMode}>
           {isDraggingEnabled ? "Confirm Move" : "Move Grid Mode"}
