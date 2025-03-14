@@ -14,7 +14,7 @@
   position: relative;
   background-color: #ddd;
   width: 100%;
-  max-width: 500px;
+  max-width: 400px;
   aspect-ratio: 1;
 }
 
@@ -36,10 +36,11 @@
   border: 3px solid brown;
   cursor: move;
   opacity: 0.8;
-  pointer-events: none; /* Ensure it doesn’t block clicks unless dragging is enabled */
-  width: calc(3 * (100% / var(--board-size)));
-  height: calc(3 * (100% / var(--board-size)));
-  z-index: 10; /* Ensure it appears above cells */
+  z-index: 10;
+  transform: translate(
+    calc(var(--grid-position-col) * (100% / var(--board-size))),
+    calc(var(--grid-position-row) * (100% / var(--board-size)))
+  );
 }
 
 #controls {
@@ -56,14 +57,14 @@ button,
 select {
   margin: 5px;
   padding: 10px 14px;
-  font-size: 16px;
+  font-size: 14px;
   cursor: pointer;
   flex: 1 1 150px;
 }
 
 #current-player,
 #winner {
-  font-size: 18px;
+  font-size: 15px;
   font-weight: bold;
   margin: 10px 0;
   width: 100%;
